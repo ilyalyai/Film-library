@@ -143,13 +143,13 @@ namespace FilmLibrary
 
         public async Task<Film> KinopoiskSearch(string y, string n, string g)
         {
-            var baseAddress = new Uri("https://api.kinopoisk.dev/v1.4/movie/");
+            var baseAddress = new Uri("https://api.kinopoisk.dev/v1.4/movie");
             if (!string.IsNullOrEmpty(n))
             {
                 using var httpClient = new HttpClient { BaseAddress = baseAddress };
                 {
                     httpClient.DefaultRequestHeaders.Add("X-API-KEY", CreateOrGetToken());
-                    using var response = await httpClient.GetAsync("&query=" + n);
+                    using var response = await httpClient.GetAsync("?limit=10&query=" + n);
                     string responseHeaders = response.Headers.ToString();
                     string responseData = await response.Content.ReadAsStringAsync();
 
@@ -162,15 +162,18 @@ namespace FilmLibrary
             {
                 using var httpClient = new HttpClient { BaseAddress = baseAddress };
                 {
-                    httpClient.DefaultRequestHeaders.Authorization
-                        = new AuthenticationHeaderValue("X-API-KEY", token);
-                    using var response = await httpClient.GetAsync("&year=" + n);
-                    string responseHeaders = response.Headers.ToString();
-                    string responseData = await response.Content.ReadAsStringAsync();
+                    httpClient.DefaultRequestHeaders.Add("X-API-KEY", CreateOrGetToken());
+                    var task = Task.Run(() => httpClient.GetAsync("?limit=10&year=" + y));
+                    Task.WaitAll(task);
+                    using (var response = task.Result)
+                    {
+                        string responseHeaders = response.Headers.ToString();
+                        string responseData = await response.Content.ReadAsStringAsync();
 
-                    Console.WriteLine("Status " + (int)response.StatusCode);
-                    Console.WriteLine("Headers " + responseHeaders);
-                    Console.WriteLine("Data " + responseData);
+                        Console.WriteLine("Status " + (int)response.StatusCode);
+                        Console.WriteLine("Headers " + responseHeaders);
+                        Console.WriteLine("Data " + responseData);
+                    }
                 }
             }
             else

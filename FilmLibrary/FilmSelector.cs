@@ -35,6 +35,8 @@ namespace FilmLibrary
                     //Поиск на кинопоиске
                     newElement = _oldForm.films.KinopoiskSearch(year, name, genre).Result;
 
+
+
                     if (newElement == null)
                     {
                         MessageBox.Show("Ничего не найдено!", "", MessageBoxButtons.OK);
