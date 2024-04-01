@@ -12,7 +12,7 @@ namespace FilmLibrary
 {
     public partial class FilmSelector : Form
     {
-        private MainWindow _oldForm;
+        private readonly MainWindow _oldForm;
 
         public FilmSelector(MainWindow form)
         {

@@ -4,6 +4,14 @@ using System.IO;
 using System.Net.Http;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading.Tasks;
+using System.Configuration;
+using System.Windows.Forms;
+using System.Linq;
+using System.Net.Http.Headers;
+using System.Xml.Linq;
+using FilmLibrary.Properties;
+using System.Runtime;
+using System.Text.Json;
 
 namespace FilmLibrary
 {
@@ -26,7 +34,27 @@ namespace FilmLibrary
 
     public class FilmList
     {
-        private const string token = Keys.apiToken;
+        async public static void GetGenresAsync()
+        {
+            using var httpClient = new HttpClient { BaseAddress = new Uri("https://api.kinopoisk.dev/v1/movie/possible-values-by-field") };
+            {
+                httpClient.DefaultRequestHeaders.Add("X-API-KEY", CreateOrGetToken());
+                using var response = await httpClient.GetAsync("?field=genres.name");
+                string responseHeaders = response.Headers.ToString();
+                string responseData = await response.Content.ReadAsStringAsync();
+                var jsonDoc = JsonDocument.Parse(responseData);
+                var genresList = new List<string>();
+                foreach (JsonElement genreName in jsonDoc.RootElement.EnumerateArray())
+                {
+                    Console.WriteLine(genreName.GetProperty("name").GetString());
+                    genresList.Add(genreName.GetProperty("name").GetString());
+                }
+            }
+        }
+
+        private readonly string token = CreateOrGetToken();
+
+        public readonly List<string> genres;
 
         public List<Film> list;
 
@@ -40,7 +68,7 @@ namespace FilmLibrary
                             && (string.IsNullOrEmpty(y) || film.year.Equals(y))
                             && (string.IsNullOrEmpty(g) || film.genre.Equals(g)));
             }
-            catch (ArgumentNullException e)
+            catch (ArgumentNullException)
             {
                 return null;
             }
@@ -64,17 +92,16 @@ namespace FilmLibrary
                     using (FileStream sw = new FileStream("E:/Сохранения/FilmList/films.txt", FileMode.Open))
                         list = (List<Film>)_bin.Deserialize(sw);
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Console.WriteLine("Файл со списком не найден или поврежден!");
                 Environment.Exit(1);
             }
         }
 
-        public void addNew(Film newbie)
+        public void AddNew(Film newbie)
         {
-            if (list == null)
-                list = new List<Film>();
+            list ??= new List<Film>();
             list.Add(newbie);
             //И сохраним
             Save();
@@ -85,42 +112,65 @@ namespace FilmLibrary
             if (list != null)
             {
                 BinaryFormatter _bin = new BinaryFormatter();
-                using (FileStream sw = new FileStream("E:/Сохранения/FilmList/films.txt", FileMode.OpenOrCreate))
-                    _bin.Serialize(sw, list);
+                using FileStream sw = new FileStream("E:/Сохранения/FilmList/films.txt", FileMode.OpenOrCreate);
+                _bin.Serialize(sw, list);
             }
+        }
+
+        private static string CreateOrGetToken()
+        {
+            string token = "";
+            var configFile = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            var appSettings = configFile.AppSettings.Settings;
+            if (appSettings["token"] == null)
+            {
+                using (var form = new AddToken())
+                {
+                    var result = form.ShowDialog();
+                    if (result == DialogResult.OK)
+                    {
+                        appSettings.Add("token", form.token);
+                        configFile.Save(ConfigurationSaveMode.Modified);
+                        ConfigurationManager.RefreshSection(configFile.AppSettings.SectionInformation.Name);
+                        token = form.token;
+                    }
+                }
+            }
+            else
+                token = appSettings["token"].Value;
+            return token;
         }
 
         public async Task<Film> KinopoiskSearch(string y, string n, string g)
         {
-            var baseAddress = new Uri("https://сloud-api.kinopoisk.dev");
+            var baseAddress = new Uri("https://api.kinopoisk.dev/v1.4/movie/");
             if (!string.IsNullOrEmpty(n))
             {
                 using var httpClient = new HttpClient { BaseAddress = baseAddress };
                 {
-                    using (var response = await httpClient.GetAsync("/movie?search=" + n + "&field=name&isStrict=false&token=" + token))
-                    {
-                        string responseHeaders = response.Headers.ToString();
-                        string responseData = await response.Content.ReadAsStringAsync();
+                    httpClient.DefaultRequestHeaders.Add("X-API-KEY", CreateOrGetToken());
+                    using var response = await httpClient.GetAsync("&query=" + n);
+                    string responseHeaders = response.Headers.ToString();
+                    string responseData = await response.Content.ReadAsStringAsync();
 
-                        Console.WriteLine("Status " + (int)response.StatusCode);
-                        Console.WriteLine("Headers " + responseHeaders);
-                        Console.WriteLine("Data " + responseData);
-                    }
+                    Console.WriteLine("Status " + (int)response.StatusCode);
+                    Console.WriteLine("Headers " + responseHeaders);
+                    Console.WriteLine("Data " + responseData);
                 }
             }
             else if (!string.IsNullOrEmpty(y))
             {
                 using var httpClient = new HttpClient { BaseAddress = baseAddress };
                 {
-                    using (var response = await httpClient.GetAsync("/movie?search=" + y + "&field=year&token=" + token))
-                    {
-                        string responseHeaders = response.Headers.ToString();
-                        string responseData = await response.Content.ReadAsStringAsync();
+                    httpClient.DefaultRequestHeaders.Authorization
+                        = new AuthenticationHeaderValue("X-API-KEY", token);
+                    using var response = await httpClient.GetAsync("&year=" + n);
+                    string responseHeaders = response.Headers.ToString();
+                    string responseData = await response.Content.ReadAsStringAsync();
 
-                        Console.WriteLine("Status " + (int)response.StatusCode);
-                        Console.WriteLine("Headers " + responseHeaders);
-                        Console.WriteLine("Data " + responseData);
-                    }
+                    Console.WriteLine("Status " + (int)response.StatusCode);
+                    Console.WriteLine("Headers " + responseHeaders);
+                    Console.WriteLine("Data " + responseData);
                 }
             }
             else

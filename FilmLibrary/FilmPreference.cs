@@ -35,7 +35,7 @@ namespace FilmLibrary
         {
             var newbie = new Film(textBox2.Text, textBox1.Text, comboBox1.Text);
 
-            _oldForm.films.addNew(newbie);
+            _oldForm.films.AddNew(newbie);
 
             Close();
             _oldForm.Show();

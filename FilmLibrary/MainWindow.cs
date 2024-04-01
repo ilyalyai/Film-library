@@ -33,5 +33,10 @@ namespace FilmLibrary
             selectorForm.Show();
             this.Hide();
         }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+            FilmList.GetGenresAsync();
+        }
     }
 }
