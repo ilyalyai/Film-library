@@ -34,26 +34,6 @@ namespace FilmLibrary
 
     public class FilmList
     {
-        async public static void GetGenresAsync()
-        {
-            using var httpClient = new HttpClient { BaseAddress = new Uri("https://api.kinopoisk.dev/v1/movie/possible-values-by-field") };
-            {
-                httpClient.DefaultRequestHeaders.Add("X-API-KEY", CreateOrGetToken());
-                using var response = await httpClient.GetAsync("?field=genres.name");
-                string responseHeaders = response.Headers.ToString();
-                string responseData = await response.Content.ReadAsStringAsync();
-                var jsonDoc = JsonDocument.Parse(responseData);
-                var genresList = new List<string>();
-                foreach (JsonElement genreName in jsonDoc.RootElement.EnumerateArray())
-                {
-                    Console.WriteLine(genreName.GetProperty("name").GetString());
-                    genresList.Add(genreName.GetProperty("name").GetString());
-                }
-            }
-        }
-
-        private readonly string token = CreateOrGetToken();
-
         public readonly List<string> genres;
 
         public List<Film> list;
@@ -115,72 +95,6 @@ namespace FilmLibrary
                 using FileStream sw = new FileStream("E:/Сохранения/FilmList/films.txt", FileMode.OpenOrCreate);
                 _bin.Serialize(sw, list);
             }
-        }
-
-        private static string CreateOrGetToken()
-        {
-            string token = "";
-            var configFile = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            var appSettings = configFile.AppSettings.Settings;
-            if (appSettings["token"] == null)
-            {
-                using (var form = new AddToken())
-                {
-                    var result = form.ShowDialog();
-                    if (result == DialogResult.OK)
-                    {
-                        appSettings.Add("token", form.token);
-                        configFile.Save(ConfigurationSaveMode.Modified);
-                        ConfigurationManager.RefreshSection(configFile.AppSettings.SectionInformation.Name);
-                        token = form.token;
-                    }
-                }
-            }
-            else
-                token = appSettings["token"].Value;
-            return token;
-        }
-
-        public async Task<Film> KinopoiskSearch(string y, string n, string g)
-        {
-            var baseAddress = new Uri("https://api.kinopoisk.dev/v1.4/movie");
-            if (!string.IsNullOrEmpty(n))
-            {
-                using var httpClient = new HttpClient { BaseAddress = baseAddress };
-                {
-                    httpClient.DefaultRequestHeaders.Add("X-API-KEY", CreateOrGetToken());
-                    using var response = await httpClient.GetAsync("?limit=10&query=" + n);
-                    string responseHeaders = response.Headers.ToString();
-                    string responseData = await response.Content.ReadAsStringAsync();
-
-                    Console.WriteLine("Status " + (int)response.StatusCode);
-                    Console.WriteLine("Headers " + responseHeaders);
-                    Console.WriteLine("Data " + responseData);
-                }
-            }
-            else if (!string.IsNullOrEmpty(y))
-            {
-                using var httpClient = new HttpClient { BaseAddress = baseAddress };
-                {
-                    httpClient.DefaultRequestHeaders.Add("X-API-KEY", CreateOrGetToken());
-                    var task = Task.Run(() => httpClient.GetAsync("?limit=10&year=" + y));
-                    Task.WaitAll(task);
-                    using (var response = task.Result)
-                    {
-                        string responseHeaders = response.Headers.ToString();
-                        string responseData = await response.Content.ReadAsStringAsync();
-
-                        Console.WriteLine("Status " + (int)response.StatusCode);
-                        Console.WriteLine("Headers " + responseHeaders);
-                        Console.WriteLine("Data " + responseData);
-                    }
-                }
-            }
-            else
-            {
-            }
-
-            return null;
         }
     }
 }

@@ -18,6 +18,7 @@ namespace FilmLibrary
         {
             _oldForm = form;
             InitializeComponent();
+            backgroundWorker1.RunWorkerAsync();
         }
 
         private void button3_Click(object sender, EventArgs e)
@@ -33,9 +34,7 @@ namespace FilmLibrary
                 if(dialogResult == DialogResult.Yes)
                 {
                     //Поиск на кинопоиске
-                    newElement = _oldForm.films.KinopoiskSearch(year, name, genre).Result;
-
-
+                    newElement = ApiHelper.KinopoiskSearch(year, name, genre).Result;
 
                     if (newElement == null)
                     {
@@ -100,6 +99,25 @@ namespace FilmLibrary
             label6.Text = "";
             button2.Show();
             button3.Show();
+        }
+
+        private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
+        {
+            ApiHelper.FormGenres(backgroundWorker1);
+        }
+
+        private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            comboBox1.Items.AddRange(ApiHelper.genres.ToArray());
+            comboBox1.Enabled = true;
+            label5.Text = "Жанры:";
+            label5.Refresh();
+        }
+
+        private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            label5.Invoke(new Action(() => { label5.Text = "Прогресс: " + e.ProgressPercentage + "%"; }));
+            label5.Invoke(new Action(() => { label5.Refresh(); }));
         }
     }
 }

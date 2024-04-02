@@ -86,6 +86,7 @@
     <Compile Include="AddToken.Designer.cs">
       <DependentUpon>AddToken.cs</DependentUpon>
     </Compile>
+    <Compile Include="ApiHelper.cs" />
     <Compile Include="Film.cs" />
     <Compile Include="FilmPreference.cs">
       <SubType>Form</SubType>

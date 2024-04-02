@@ -1,4 +1,10 @@
 ﻿
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Text.Json;
+using System;
+using System.Windows.Forms;
+
 namespace FilmLibrary
 {
     partial class FilmSelector
@@ -41,18 +47,13 @@ namespace FilmLibrary
             this.label2 = new System.Windows.Forms.Label();
             this.button3 = new System.Windows.Forms.Button();
             this.label6 = new System.Windows.Forms.Label();
+            this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             this.SuspendLayout();
             // 
             // comboBox1
             // 
+            this.comboBox1.Enabled = false;
             this.comboBox1.FormattingEnabled = true;
-            this.comboBox1.Items.AddRange(new object[] {
-            "Аниме",
-            "Боевик",
-            "Мультфильм",
-            "Семейный",
-            "Сериал",
-            "Хоррор"});
             this.comboBox1.Location = new System.Drawing.Point(559, 57);
             this.comboBox1.Name = "comboBox1";
             this.comboBox1.Size = new System.Drawing.Size(121, 21);
@@ -116,7 +117,7 @@ namespace FilmLibrary
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(609, 41);
+            this.label5.Location = new System.Drawing.Point(603, 41);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(36, 13);
             this.label5.TabIndex = 9;
@@ -156,6 +157,13 @@ namespace FilmLibrary
             this.label6.Size = new System.Drawing.Size(0, 13);
             this.label6.TabIndex = 11;
             // 
+            // backgroundWorker1
+            // 
+            this.backgroundWorker1.WorkerReportsProgress = true;
+            this.backgroundWorker1.DoWork += new System.ComponentModel.DoWorkEventHandler(this.backgroundWorker1_DoWork);
+            this.backgroundWorker1.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.backgroundWorker1_ProgressChanged);
+            this.backgroundWorker1.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.backgroundWorker1_RunWorkerCompleted);
+            // 
             // FilmSelector
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -194,5 +202,6 @@ namespace FilmLibrary
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Label label6;
+        private System.ComponentModel.BackgroundWorker backgroundWorker1;
     }
 }
