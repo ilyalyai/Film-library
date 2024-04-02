@@ -26,32 +26,21 @@ namespace FilmLibrary
             string name = textBox1.Text;
             string year = textBox2.Text;
             string genre = comboBox1.Text;
-            var newElement = _oldForm.films.FindRandom(year, name, genre);
+            Film newElement = _oldForm.films.FindRandom(year, name, genre);
             if (newElement == null)
             {
                 button2.Hide();
                 DialogResult dialogResult = MessageBox.Show("По введенным параметрам фильм не найден. Выполнить поиск на кинопоиске?", "Фильм не найден!", MessageBoxButtons.YesNo);
-                if(dialogResult == DialogResult.Yes)
-                {
-                    //Поиск на кинопоиске
-                    newElement = ApiHelper.KinopoiskSearch(year, name, genre).Result;
+                if (dialogResult == DialogResult.No)
+                    return;
+                //Поиск на кинопоиске
+                newElement = ApiHelper.KinopoiskSearch(year, name, genre).Result;
 
-                    if (newElement == null)
-                    {
-                        MessageBox.Show("Ничего не найдено!", "", MessageBoxButtons.OK);
-                        return;
-                    }
-
-                    button3.Hide();
-                    label1.Text = newElement.name;
-                    label2.Text = newElement.genre;
-                    label6.Text = newElement.year;
-                }
-                else if (dialogResult == DialogResult.No)
+                if (newElement == null)
                 {
-                    //do something else
+                    MessageBox.Show("Ничего не найдено!", "", MessageBoxButtons.OK);
+                    return;
                 }
-                return;
             }
             button3.Hide();
             label1.Text = newElement.name;

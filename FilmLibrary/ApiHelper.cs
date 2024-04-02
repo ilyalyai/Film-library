@@ -3,11 +3,16 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Security.Policy;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Linq;
+using System.Web;
 
 namespace FilmLibrary
 {
@@ -77,19 +82,26 @@ namespace FilmLibrary
             var token = ApiHelper.token;
             if (!string.IsNullOrEmpty(n))
             {
+                baseAddress = new Uri("https://api.kinopoisk.dev/v1.4/movie/search");
                 using var httpClient = new HttpClient { BaseAddress = baseAddress };
                 {
                     httpClient.DefaultRequestHeaders.Add("X-API-KEY", token);
-                    using var response = await httpClient.GetAsync("?limit=10&query=" + n);
+                    var enc = UrlEncoder.Create();
+                    var task = Task.Run(() => httpClient.GetAsync("?limit=10&query=" + n));
+                    Task.WaitAll(task);
+                    using var response = task.Result;
                     string responseHeaders = response.Headers.ToString();
                     string responseData = await response.Content.ReadAsStringAsync();
 
                     Console.WriteLine("Status " + (int)response.StatusCode);
                     Console.WriteLine("Headers " + responseHeaders);
                     Console.WriteLine("Data " + responseData);
+                    var jsonDoc = JsonDocument.Parse(responseData);
+                    var filmData = jsonDoc.RootElement.GetProperty("docs").EnumerateArray().FirstOrDefault(e => e.GetProperty("type").GetString().Equals("movie"));
+                    return new Film(filmData.GetProperty("year").GetString(), filmData.GetProperty("name").GetString(), filmData.GetProperty("genres").ToString());
                 }
             }
-            else if (!string.IsNullOrEmpty(y))
+            if (!string.IsNullOrEmpty(y))
             {
                 using var httpClient = new HttpClient { BaseAddress = baseAddress };
                 {
@@ -103,9 +115,12 @@ namespace FilmLibrary
                     Console.WriteLine("Status " + (int)response.StatusCode);
                     Console.WriteLine("Headers " + responseHeaders);
                     Console.WriteLine("Data " + responseData);
+                    var jsonDoc = JsonDocument.Parse(responseData);
+                    var filmData = jsonDoc.RootElement.GetProperty("docs").EnumerateArray().FirstOrDefault(e => e.GetProperty("type").GetString().Equals("movie"));
+                    return new Film(filmData.GetProperty("year").GetString(), filmData.GetProperty("name").GetString(), filmData.GetProperty("genres").ToString());
                 }
             }
-            else if (!string.IsNullOrEmpty(g))
+            if (!string.IsNullOrEmpty(g))
             {
                 using var httpClient = new HttpClient { BaseAddress = baseAddress };
                 {
@@ -119,6 +134,9 @@ namespace FilmLibrary
                     Console.WriteLine("Status " + (int)response.StatusCode);
                     Console.WriteLine("Headers " + responseHeaders);
                     Console.WriteLine("Data " + responseData);
+                    var jsonDoc = JsonDocument.Parse(responseData);
+                    var filmData = jsonDoc.RootElement.GetProperty("docs").EnumerateArray().FirstOrDefault(e => e.GetProperty("type").GetString().Equals("movie"));
+                    return new Film(filmData.GetProperty("year").GetString(), filmData.GetProperty("name").GetString(), filmData.GetProperty("genres").ToString());
                 }
             }
 
