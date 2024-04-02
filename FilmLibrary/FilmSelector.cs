@@ -29,7 +29,6 @@ namespace FilmLibrary
             Film newElement = _oldForm.films.FindRandom(year, name, genre);
             if (newElement == null)
             {
-                button2.Hide();
                 DialogResult dialogResult = MessageBox.Show("По введенным параметрам фильм не найден. Выполнить поиск на кинопоиске?", "Фильм не найден!", MessageBoxButtons.YesNo);
                 if (dialogResult == DialogResult.No)
                     return;
@@ -46,21 +45,13 @@ namespace FilmLibrary
             label1.Text = newElement.name;
             label2.Text = newElement.genre;
             label6.Text = newElement.year;
+            button2.Show();
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             this.Close();
             _oldForm.Show();
-        }
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-            var newElement = _oldForm.films.FindRandom(textBox2.Text, textBox1.Text, comboBox1.Text);
-            button3.Hide();
-            label1.Text = newElement.name;
-            label2.Text = newElement.genre;
-            label6.Text = newElement.year;
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)

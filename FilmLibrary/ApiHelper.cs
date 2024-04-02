@@ -3,22 +3,17 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
-using System.Security.Policy;
-using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml.Linq;
-using System.Web;
 
 namespace FilmLibrary
 {
-    static class ApiHelper
+    internal static class ApiHelper
     {
-        async private static Task<List<string>> GetGenresAsync(BackgroundWorker worker = null)
+        private static async Task<List<string>> GetGenresAsync(BackgroundWorker worker = null)
         {
             var genres = new List<string>();
             using var httpClient = new HttpClient { BaseAddress = new Uri("https://api.kinopoisk.dev/v1/movie/possible-values-by-field") };
@@ -38,13 +33,13 @@ namespace FilmLibrary
                 {
                     genres.Add(genreName.GetProperty("name").GetString());
                     Console.WriteLine(genreName.GetProperty("name").GetString());
-                    worker.ReportProgress(40 + (60/count * ++i));
+                    worker.ReportProgress(40 + (60 / count * ++i));
                 }
             }
             return genres;
         }
 
-        public readonly static string token = CreateOrGetToken();
+        public static readonly string token = CreateOrGetToken();
 
         private static string CreateOrGetToken()
         {
@@ -70,7 +65,7 @@ namespace FilmLibrary
 
         public static List<string> genres;
 
-        async public static void FormGenres(BackgroundWorker worker = null)
+        public static async void FormGenres(BackgroundWorker worker = null)
         {
             worker.ReportProgress(5);
             genres = GetGenresAsync(worker).Result;
@@ -98,7 +93,7 @@ namespace FilmLibrary
                     Console.WriteLine("Data " + responseData);
                     var jsonDoc = JsonDocument.Parse(responseData);
                     var filmData = jsonDoc.RootElement.GetProperty("docs").EnumerateArray().FirstOrDefault(e => e.GetProperty("type").GetString().Equals("movie"));
-                    return new Film(filmData.GetProperty("year").GetString(), filmData.GetProperty("name").GetString(), filmData.GetProperty("genres").ToString());
+                    return new Film(filmData.GetProperty("year").GetUInt16().ToString(), filmData.GetProperty("name").GetString(), filmData.GetProperty("genres").ToString());
                 }
             }
             if (!string.IsNullOrEmpty(y))
@@ -117,7 +112,7 @@ namespace FilmLibrary
                     Console.WriteLine("Data " + responseData);
                     var jsonDoc = JsonDocument.Parse(responseData);
                     var filmData = jsonDoc.RootElement.GetProperty("docs").EnumerateArray().FirstOrDefault(e => e.GetProperty("type").GetString().Equals("movie"));
-                    return new Film(filmData.GetProperty("year").GetString(), filmData.GetProperty("name").GetString(), filmData.GetProperty("genres").ToString());
+                    return new Film(filmData.GetProperty("year").GetUInt16().ToString(), filmData.GetProperty("name").GetString(), filmData.GetProperty("genres").ToString());
                 }
             }
             if (!string.IsNullOrEmpty(g))
@@ -136,7 +131,7 @@ namespace FilmLibrary
                     Console.WriteLine("Data " + responseData);
                     var jsonDoc = JsonDocument.Parse(responseData);
                     var filmData = jsonDoc.RootElement.GetProperty("docs").EnumerateArray().FirstOrDefault(e => e.GetProperty("type").GetString().Equals("movie"));
-                    return new Film(filmData.GetProperty("year").GetString(), filmData.GetProperty("name").GetString(), filmData.GetProperty("genres").ToString());
+                    return new Film(filmData.GetProperty("year").GetUInt16().ToString(), filmData.GetProperty("name").GetString(), filmData.GetProperty("genres").ToString());
                 }
             }
 
